@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>For Meylisa ❤️</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Great+Vibes&family=Nunito:wght@400;700;900&display=swap');
+
+        :root {
+            --primary: #ff4d6d;
+            --secondary: #ff8fa3;
+            --bg: #fff0f3;
+            --text: #590d22;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: none; /* Mencegah scroll saat main game */
+        }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            background: linear-gradient(135deg, #fff0f3 0%, #ffccd5 100%);
+            color: var(--text);
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* --- Audio --- */
+        #bg-music { display: none; }
+
+        /* --- SCREENS --- */
+        .screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 20px;
+            transition: opacity 0.5s ease, transform 0.5s ease;
+        }
+
+        .hidden {
+            opacity: 0;
+            pointer-events: none;
+            transform: scale(0.9);
+            z-index: -1;
+        }
+
+        /* 1. INTRO SCREEN */
+        #intro-screen { z-index: 100; background: white; }
+        h1 { font-family: 'Great Vibes', cursive; font-size: 3.5rem; color: var(--primary); margin-bottom: 10px; }
+        .subtitle { font-size: 1.2rem; font-weight: bold; margin-bottom: 30px; }
+        
+        .btn-group { position: relative; width: 100%; max-width: 280px; height: 80px; }
+        
+        .btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            transition: transform 0.1s;
+        }
+        .btn:active { transform: scale(0.95); }
+        .btn-yes { background: var(--primary); color: white; position: absolute; left: 20px; bottom: 10px; }
+        .btn-no { background: #ccc; color: #666; position: absolute; right: 20px; bottom: 10px; }
+
+        /* 2. LETTER SCREEN */
+        #letter-screen { z-index: 50; overflow-y: auto; display: none; }
+        #letter-screen.active { display: flex; opacity: 1; pointer-events: auto; transform: scale(1); }
+        
+        .card {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 25px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(255, 77, 109, 0.2);
+            max-width: 500px;
+            width: 90%;
+            margin-bottom: 20px;
+            animation: popUp 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .love-text { font-size: 1.1rem; line-height: 1.6; margin: 15px 0; white-space: pre-line; text-align: left;}
+        .sign { font-family: 'Great Vibes', cursive; font-size: 2rem; color: var(--primary); text-align: right; margin-top: 10px; }
+        
+        .nav-btn {
+            background: white; color: var(--primary); border: 2px solid var(--primary);
+            margin-top: 10px; padding: 10px 20px; border-radius: 50px; font-weight: bold;
+            cursor: pointer; box-shadow: 0 4px 0 var(--primary);
+        }
+        .nav-btn:active { transform: translateY(4px); box-shadow: none; }
+
+        /* 3. GAME SCREEN */
+        #game-screen { background: #ffe5ec; z-index: 60; }
+        
+        #game-ui { position: absolute; top: 20px; left: 0; width: 100%; display: flex; justify-content: space-between; padding: 0 20px; font-weight: 900; font-size: 1.5rem; color: var(--primary); pointer-events: none; }
+        
+        #game-canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+            cursor: none; /* Sembunyikan kursor asli */
+        }
+
+        #start-game-btn {
+            background: var(--primary); color: white; padding: 15px 40px; font-size: 1.5rem;
+            border-radius: 50px; border: none; font-weight: bold; box-shadow: 0 5px 15px rgba(255, 77, 109, 0.4);
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
+        @keyframes popUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Responsive Fixes */
+        @media (max-width: 400px) {
+            h1 { font-size: 2.8rem; }
+            .btn-group { height: 70px; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Lagu -->
+    <audio id="bg-music" loop>
+        <source src="best-part.mp3" type="audio/mpeg">
+    </audio>
+
+    <!-- 1. INTRO -->
+    <div id="intro-screen" class="screen">
+        <h1>Hai Meylisa ❤️</h1>
+        <div class="subtitle">Ada sesuatu buat kamu...</div>
+        <div class="btn-group">
+            <button class="btn btn-yes" onclick="goToLetter()">Lihat</button>
+            <button class="btn btn-no" id="btnNo" onmouseover="lari()" ontouchstart="lari()" onclick="lari()">Enggak</button>
+        </div>
+    </div>
+
+    <!-- 2. SURAT -->
+    <div id="letter-screen" class="screen hidden">
+        <div class="card">
+            <h2>Valentine Spesial</h2>
+            <p class="love-text">
+                Dear Meylisa,
+
+                Happy Valentine's Day! ❤️
+                
+                Aku tau kadang aku bikin kamu kesel, tapi percayalah semua yang aku lakuin itu karena sayang sama kamu. Kamu adalah bagian terbaik dalam hidupku, Inu.
+                
+                Sebagai hadiah, aku bikinin mini game biar kamu gak bosen. Coba mainkan ya! Siapa tau kamu bisa dapet skor tinggi.
+
+                I Love You 3000!
+            </p>
+            <div class="sign">- Inu</div>
+        </div>
+        <button class="nav-btn" onclick="goToGame()">Mainkan Game 🎮</button>
+    </div>
+
+    <!-- 3. GAME -->
+    <div id="game-screen" class="screen hidden">
+        <div id="game-ui">
+            <div>Skor: <span id="score">0</span></div>
+            <div>High Score: <span id="high-score">0</span></div>
+        </div>
+        
+        <canvas id="game-canvas"></canvas>
+
+        <div id="game-overlay" style="position: absolute; display: flex; flex-direction: column; align-items: center;">
+            <h2 style="color: var(--primary); margin-bottom: 20px;">Tangkap Hati Meylisa!</h2>
+            <p style="margin-bottom: 20px; font-size: 0.9rem;">Sentuh & Geser untuk gerakin keranjang</p>
+            <button id="start-game-btn" onclick="startGame()">Mulai Main</button>
+        </div>
+    </div>
+
+    <script>
+        /* --- AUDIO & NAVIGASI --- */
+        const bgMusic = document.getElementById('bg-music');
+        
+        function lari() {
+            const btn = document.getElementById('btnNo');
+            const w = window.innerWidth - 100;
+            const h = window.innerHeight - 50;
+            btn.style.position = 'fixed';
+            btn.style.left = Math.random() * w + 'px';
+            btn.style.top = Math.random() * h + 'px';
+            
+            const texts = ["Enggak bisa!", "Wkwkwk", "Salah tombol", "Klik Lihat dong", "Sayang Inu"];
+            btn.innerText = texts[Math.floor(Math.random() * texts.length)];
+        }
+
+        function goToLetter() {
+            document.getElementById('intro-screen').classList.add('hidden');
+            const letter = document.getElementById('letter-screen');
+            letter.classList.remove('hidden');
+            letter.classList.add('active');
+            bgMusic.play().catch(e => console.log("Perlu klik user"));
+            bgMusic.volume = 0.5;
+        }
+
+        function goToGame() {
+            document.getElementById('letter-screen').classList.add('hidden');
+            const game = document.getElementById('game-screen');
+            game.classList.remove('hidden');
+            initGame();
+        }
+
+        /* --- LOGIKA GAME (CANVAS) --- */
+        const canvas = document.getElementById('game-canvas');
+        const ctx = canvas.getContext('2d');
+        const scoreEl = document.getElementById('score');
+        const highScoreEl = document.getElementById('high-score');
+        const overlay = document.getElementById('game-overlay');
+        const startBtn = document.getElementById('start-game-btn');
+
+        let width, height;
+        let isPlaying = false;
+        let score = 0;
+        let highScore = localStorage.getItem('valentineHighScore') || 0;
+        highScoreEl.innerText = highScore;
+
+        // Pemain (Keranjang)
+        const player = { x: 0, y: 0, width: 60, height: 60, color: '#ff4d6d' };
+        let targetX = 0; // Untuk smooth movement di touch
+
+        // Objek Jatuh
+        let items = [];
+        let frame = 0;
+        let speedMultiplier = 1;
+
+        function resizeCanvas() {
+            width = window.innerWidth;
+            height = window.innerHeight;
+            canvas.width = width;
+            canvas.height = height;
+            player.y = height - 80;
+            player.x = width / 2 - player.width / 2;
+            targetX = player.x;
+        }
+
+        window.addEventListener('resize', resizeCanvas);
+        
+        // Kontrol Mouse & Touch
+        const handleInput = (e) => {
+            if (!isPlaying) return;
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            targetX = clientX - player.width / 2;
+            
+            // Batas layar
+            if (targetX < 0) targetX = 0;
+            if (targetX > width - player.width) targetX = width - player.width;
+        };
+
+        window.addEventListener('mousemove', handleInput);
+        window.addEventListener('touchmove', handleInput);
+
+        function initGame() {
+            resizeCanvas();
+            // Render awal (kosong)
+            ctx.fillStyle = '#ffe5ec';
+            ctx.fillRect(0, 0, width, height);
+        }
+
+        function startGame() {
+            overlay.style.display = 'none';
+            isPlaying = true;
+            score = 0;
+            items = [];
+            speedMultiplier = 1;
+            scoreEl.innerText = score;
+            gameLoop();
+        }
+
+        function spawnItem() {
+            const isBomb = Math.random() < 0.2; // 20% kemungkinan bom
+            items.push({
+                x: Math.random() * (width - 30),
+                y: -30,
+                size: 30,
+                speed: (Math.random() * 2 + 2) * speedMultiplier,
+                type: isBomb ? 'bomb' : 'heart'
+            });
+        }
+
+        function gameOver() {
+            isPlaying = false;
+            if (score > highScore) {
+                highScore = score;
+                localStorage.setItem('valentineHighScore', highScore);
+                highScoreEl.innerText = highScore;
+            }
+            
+            overlay.style.display = 'flex';
+            document.querySelector('#game-overlay h2').innerText = `Game Over! Skor: ${score}`;
+            startBtn.innerText = "Coba Lagi";
+        }
+
+        function gameLoop() {
+            if (!isPlaying) return;
+
+            // Clear Canvas
+            ctx.clearRect(0, 0, width, height);
+
+            // Update Player Position (Lerp for smoothness)
+            player.x += (targetX - player.x) * 0.2;
+
+            // Draw Player (Bucket)
+            ctx.fillStyle = player.color;
+            ctx.beginPath();
+            ctx.roundRect(player.x, player.y, player.width, player.height, 10);
+            ctx.fill();
+            
+            // Emoji di dalam bucket
+            ctx.font = '30px Arial';
+            ctx.fillStyle = 'white';
+            ctx.textAlign = 'center';
+            ctx.fillText('🙋‍♂️', player.x + player.width/2, player.y + 40);
+
+            // Logic Spawning
+            frame++;
+            if (frame % Math.max(20, 60 - Math.floor(score / 5)) === 0) {
+                spawnItem();
+            }
+
+            // Update & Draw Items
+            for (let i = items.length - 1; i >= 0; i--) {
+                let item = items[i];
+                item.y += item.speed;
+
+                // Draw Item
+                ctx.font = '30px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText(item.type === 'heart' ? '❤️' : '💣', item.x + item.size/2, item.y + item.size);
+
+                // Collision Detection
+                if (
+                    item.x < player.x + player.width &&
+                    item.x + item.size > player.x &&
+                    item.y < player.y + player.height &&
+                    item.y + item.size > player.y
+                ) {
+                    // Tertangkap
+                    if (item.type === 'heart') {
+                        score++;
+                        scoreEl.innerText = score;
+                        // Naikkan kesulitan setiap 10 skor
+                        if (score % 10 === 0) speedMultiplier += 0.2;
+                    } else {
+                        gameOver();
+                    }
+                    items.splice(i, 1);
+                    continue;
+                }
+
+                // Out of screen
+                if (item.y > height) {
+                    items.splice(i, 1);
+                }
+            }
+
+            requestAnimationFrame(gameLoop);
+        }
+    </script>
+</body>
+</html>
